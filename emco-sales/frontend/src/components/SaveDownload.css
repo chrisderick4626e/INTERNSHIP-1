@@ -1,0 +1,168 @@
+.palette-export-card {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.export-header {
+  text-align: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.export-logo {
+  font-size: 1.1rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, #f8c948, #f97316);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.2rem;
+}
+
+.export-palette-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.1rem;
+}
+
+.export-tagline {
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.4);
+  font-style: italic;
+}
+
+.export-swatches {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.export-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.export-swatch-color {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.15);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.export-swatch-label {
+  font-size: 0.5rem;
+  color: rgba(255,255,255,0.6);
+  text-align: center;
+  max-width: 56px;
+  line-height: 1.2;
+}
+
+.export-swatch-hex {
+  font-size: 0.48rem;
+  font-family: monospace;
+  color: rgba(255,255,255,0.4);
+}
+
+.export-detected {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.export-section-title {
+  font-size: 0.58rem;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 0.35rem;
+  text-align: center;
+}
+
+.export-detected-row {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: center;
+}
+
+.export-detected-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.export-footer {
+  font-size: 0.55rem;
+  color: rgba(255,255,255,0.3);
+  text-align: center;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.download-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.download-btn {
+  padding: 0.85rem 0.5rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.22s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.download-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.download-btn.png {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+.download-btn.png:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+}
+
+.download-btn.pdf {
+  background: linear-gradient(135deg, #f97316, #ef4444);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+}
+.download-btn.pdf:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5);
+}
+
+/* ── Desktop Enhancements ─────────────────────────────────── */
+@media (min-width: 768px) {
+  .export-swatch-color { width: 64px; height: 64px; }
+  .export-swatch-label { font-size: 0.62rem; max-width: 72px; }
+  .export-swatch-hex   { font-size: 0.6rem; }
+  .export-logo         { font-size: 1.3rem; }
+  .export-palette-name { font-size: 1.05rem; }
+  .download-btn        { padding: 1rem; font-size: 0.95rem; }
+  .download-btns       { gap: 0.85rem; }
+}
+
+@media (min-width: 1024px) {
+  .download-btns { grid-template-columns: 1fr 1fr; max-width: 480px; }
+  .export-swatches { gap: 0.8rem; }
+  .export-swatch-color { width: 72px; height: 72px; }
+}

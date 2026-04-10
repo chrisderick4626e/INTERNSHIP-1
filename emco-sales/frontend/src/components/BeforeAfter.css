@@ -1,0 +1,66 @@
+.before-after { }
+
+.canvas-wrapper {
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  background: var(--card-inner);
+  border: 1px solid var(--border);
+}
+
+.preview-canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.canvas-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.palette-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.strip-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.strip-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.15);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  flex-shrink: 0;
+}
+
+.strip-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ── Desktop Enhancements ──────────────────────────────── */
+@media (min-width: 768px) {
+  .canvas-wrapper { border-radius: 18px; }
+  .strip-dot    { width: 26px; height: 26px; }
+  .strip-label  { font-size: 0.75rem; }
+  .palette-strip { gap: 0.75rem; margin-top: 1rem; }
+}
+
+@media (min-width: 1024px) {
+  .strip-dot  { width: 30px; height: 30px; }
+  .strip-label { font-size: 0.82rem; }
+}

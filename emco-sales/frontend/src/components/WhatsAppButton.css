@@ -1,0 +1,110 @@
+.whatsapp-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.wa-glow-bg {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(37, 211, 102, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.wa-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: var(--card-inner);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.wa-feature {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.wa-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, #25D366, #128C7E);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.35);
+  letter-spacing: 0.02em;
+  margin-bottom: 0.6rem;
+}
+
+.wa-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(37, 211, 102, 0.5);
+  background: linear-gradient(135deg, #2be572, #15a086);
+}
+
+.wa-btn:active { transform: scale(0.98); }
+
+.wa-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.wa-btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--card-inner);
+  color: var(--text);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.wa-btn-secondary:hover {
+  border-color: #25D366;
+  color: #25D366;
+  transform: translateY(-1px);
+}
+
+/* ── Desktop Enhancements ─────────────────────────────────── */
+@media (min-width: 768px) {
+  .wa-features { flex-direction: row; justify-content: space-around; padding: 1rem; }
+  .wa-feature  { font-size: 0.88rem; }
+  .wa-btn      { font-size: 1.1rem; padding: 1.15rem; border-radius: 16px; }
+  .wa-icon     { width: 26px; height: 26px; }
+  .wa-btn-secondary { font-size: 0.96rem; padding: 0.9rem; }
+}
+
+@media (min-width: 1024px) {
+  .wa-glow-bg { width: 350px; height: 350px; }
+  /* Side-by-side buttons on desktop */
+  .wa-btns-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 0.75rem;
+    align-items: center;
+  }
+  .wa-btn { margin-bottom: 0; }
+}
