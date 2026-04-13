@@ -9,7 +9,8 @@ const SAMPLE_ROOMS = [
   { id: "budget",   label: "Budget Home",     emoji: "💰",  src: "/rooms/budget.png" },
 ];
 
-export default function ImageUploader({ onImageReady }) {
+export default function ImageUploader({ onImage, onImageReady, currentImage }) {
+  const handleReady = onImage || onImageReady; // support both prop names
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
   const [preview, setPreview] = useState(null);
@@ -28,11 +29,11 @@ export default function ImageUploader({ onImageReady }) {
         const dataUrl = e.target.result;
         setPreview(dataUrl);
         setSelectedSample(null);
-        onImageReady({ dataUrl, source: "upload" });
+        handleReady(dataUrl); // pass plain URL string
       };
       reader.readAsDataURL(file);
     },
-    [onImageReady]
+    [handleReady]
   );
 
   const handleFileChange = (e) => processFile(e.target.files[0]);
@@ -46,24 +47,21 @@ export default function ImageUploader({ onImageReady }) {
   const handleSampleSelect = async (room) => {
     setSelectedSample(room.id);
     setPreview(room.src);
-    // Fetch sample as blob → dataUrl
     try {
-      const res = await fetch(room.src);
+      const res  = await fetch(room.src);
       const blob = await res.blob();
       const reader = new FileReader();
-      reader.onload = (e) => {
-        onImageReady({ dataUrl: e.target.result, source: "sample", label: room.label });
-      };
+      reader.onload = (e) => handleReady(e.target.result); // plain URL string
       reader.readAsDataURL(blob);
     } catch {
-      onImageReady({ dataUrl: room.src, source: "sample", label: room.label });
+      handleReady(room.src); // fallback: use path directly
     }
   };
 
   const handleClear = () => {
     setPreview(null);
     setSelectedSample(null);
-    onImageReady(null);
+    // don't call handleReady(null) — let parent manage state separately
   };
 
   return (

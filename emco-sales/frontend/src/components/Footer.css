@@ -19,7 +19,7 @@
 
 .footer-name {
   font-size: 1.1rem;
-  font-weight: 800;
+  font-weight: 900;
   background: linear-gradient(90deg, #f8c948, #f97316);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -27,9 +27,10 @@
 }
 
 .footer-tagline {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   color: rgba(255,255,255,0.4);
   font-style: italic;
+  margin: 0;
 }
 
 .footer-brands {
@@ -47,9 +48,8 @@
   letter-spacing: 0.04em;
 }
 
-.brand-pill.asian   { background: rgba(232, 65, 66, 0.15); color: #e84142; border: 1px solid rgba(232,65,66,0.3); }
-.brand-pill.birla   { background: rgba(26, 115, 232, 0.15); color: #4a9af0; border: 1px solid rgba(26,115,232,0.3); }
-.brand-pill.nippon  { background: rgba(0, 135, 90, 0.15); color: #22c55e; border: 1px solid rgba(0,135,90,0.3); }
+.brand-pill.asian  { background: rgba(232,65,66,0.12);  color: #e88888; border: 1px solid rgba(232,65,66,0.25); }
+.brand-pill.birla  { background: rgba(74,154,240,0.12); color: #74aaf0; border: 1px solid rgba(74,154,240,0.25); }
 
 .footer-wa {
   font-size: 0.8rem;
@@ -66,19 +66,18 @@
   margin: 0;
 }
 
-/* ── Desktop Enhancements ─────────────────────────────────── */
+/* ── Desktop ─────────────────────────────────────────────── */
 @media (min-width: 768px) {
-  .footer { padding: 2.5rem 3rem; gap: 1.1rem; }
-  .footer-name    { font-size: 1.4rem; }
-  .footer-tagline { font-size: 0.75rem; }
-  .brand-pill     { font-size: 0.75rem; padding: 0.35rem 0.9rem; }
-  .footer-icon    { font-size: 2rem; }
-  .footer-wa      { font-size: 0.9rem; }
-  .footer-copy    { font-size: 0.7rem; }
+  .footer          { padding: 2.5rem 3rem; gap: 1.1rem; }
+  .footer-name     { font-size: 1.4rem; }
+  .footer-tagline  { font-size: 0.72rem; }
+  .brand-pill      { font-size: 0.78rem; padding: 0.3rem 0.9rem; }
+  .footer-icon     { font-size: 2rem; }
+  .footer-wa       { font-size: 0.9rem; }
+  .footer-copy     { font-size: 0.7rem; }
 }
 
 @media (min-width: 1024px) {
-  /* Horizontal footer layout on desktop */
   .footer {
     flex-direction: row;
     justify-content: space-between;
@@ -87,7 +86,5 @@
     gap: 2rem;
     flex-wrap: wrap;
   }
-  .footer-brand   { gap: 1rem; }
-  .footer-brands  { gap: 0.65rem; }
-  .footer-copy    { margin-left: auto; }
+  .footer-copy { margin-left: auto; }
 }

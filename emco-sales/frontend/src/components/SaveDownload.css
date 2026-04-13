@@ -31,9 +31,54 @@
 }
 
 .export-tagline {
-  font-size: 0.6rem;
-  color: rgba(255,255,255,0.4);
+  font-size: 0.55rem;
+  color: rgba(255,255,255,0.35);
   font-style: italic;
+}
+
+/* Role list in export card */
+.export-roles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.9rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.export-role-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.export-role-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.export-role-info {
+  display: flex;
+  gap: 0.35rem;
+  align-items: baseline;
+}
+
+.export-role-name {
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.export-role-color {
+  font-size: 0.62rem;
+  color: rgba(255,255,255,0.75);
+  font-family: "Courier New", monospace;
 }
 
 .export-swatches {

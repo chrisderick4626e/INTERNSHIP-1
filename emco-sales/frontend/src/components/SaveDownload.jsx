@@ -1,134 +1,136 @@
 import React, { useRef, useState } from "react";
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
 import "./SaveDownload.css";
 
 export default function SaveDownload({ palette, detectedColors }) {
-  const paletteRef = useRef(null);
-  const [downloading, setDownloading] = useState(false);
-  const [pdfLoading, setPdfLoading] = useState(false);
+  const exportRef = useRef(null);
+  const [loading, setLoading] = useState(null); // "png" | "pdf" | null
 
-  const captureCanvas = async () => {
-    if (!paletteRef.current) return null;
-    return await html2canvas(paletteRef.current, {
-      backgroundColor: "#1a1a2e",
-      scale: 2,
-      useCORS: true,
-      logging: false,
-    });
-  };
+  if (!palette?.colors) return null;
 
-  const downloadPNG = async () => {
-    setDownloading(true);
+  const colorList    = Object.values(palette.colors);
+  const detectedList = detectedColors || [];
+
+  const handlePNG = async () => {
+    setLoading("png");
     try {
-      const canvas = await captureCanvas();
-      if (!canvas) return;
+      const { default: html2canvas } = await import("html2canvas");
+      const canvas = await html2canvas(exportRef.current, {
+        backgroundColor: "#14142b",
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
       const link = document.createElement("a");
-      link.download = `EMCO-SALES-palette-${palette?.style || "custom"}.png`;
+      link.download = `EMCO-SALES-Palette-${palette.name.replace(/\s/g, "-")}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
-    } finally {
-      setDownloading(false);
+    } catch (e) {
+      console.error("PNG export failed:", e);
     }
+    setLoading(null);
   };
 
-  const downloadPDF = async () => {
-    setPdfLoading(true);
+  const handlePDF = async () => {
+    setLoading("pdf");
     try {
-      const canvas = await captureCanvas();
-      if (!canvas) return;
+      const { default: html2canvas } = await import("html2canvas");
+      const { jsPDF } = await import("jspdf");
+      const canvas    = await html2canvas(exportRef.current, {
+        backgroundColor: "#14142b",
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
       const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pdfW = pdf.internal.pageSize.getWidth();
-      const pdfH = (canvas.height / canvas.width) * pdfW;
-
-      // Header
-      pdf.setFillColor(26, 26, 46);
-      pdf.rect(0, 0, pdfW, 28, "F");
-      pdf.setTextColor(248, 201, 72);
-      pdf.setFontSize(18);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("EMCO SALES", pdfW / 2, 12, { align: "center" });
-      pdf.setFontSize(9);
-      pdf.setTextColor(180, 180, 200);
-      pdf.text("Color Recommendation System — Your Trusted Paint & Color Expert", pdfW / 2, 19, { align: "center" });
-
-      // Palette image
-      pdf.addImage(imgData, "PNG", 10, 32, pdfW - 20, pdfH - 20);
-
-      // Footer
-      const footerY = 32 + pdfH - 20 + 6;
-      pdf.setFontSize(8);
-      pdf.setTextColor(120, 120, 140);
-      pdf.text(`Generated on ${new Date().toLocaleDateString("en-IN")} | wa.me/919035151620`, pdfW / 2, footerY, { align: "center" });
-
-      pdf.save(`EMCO-SALES-palette-${palette?.style || "custom"}.pdf`);
-    } finally {
-      setPdfLoading(false);
+      const pdf     = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pdfW    = pdf.internal.pageSize.getWidth();
+      const ratio   = canvas.height / canvas.width;
+      const pdfH    = pdfW * ratio;
+      pdf.addImage(imgData, "PNG", 0, 0, pdfW, pdfH);
+      pdf.save(`EMCO-SALES-Palette-${palette.name.replace(/\s/g, "-")}.pdf`);
+    } catch (e) {
+      console.error("PDF export failed:", e);
     }
+    setLoading(null);
   };
-
-  if (!palette) return null;
 
   return (
-    <section className="save-section card" id="save-download">
+    <div className="save-download card" id="save-download">
       <div className="section-header">
         <span className="section-icon">💾</span>
         <div>
-          <h2 className="section-title">Save Your Palette</h2>
-          <p className="section-desc">Download as PNG or PDF to share with family or our experts</p>
+          <p className="section-title">Save Your Palette</p>
+          <p className="section-desc">Download as PNG or branded PDF</p>
         </div>
       </div>
 
-      {/* Preview card that gets captured */}
-      <div className="palette-export-card" ref={paletteRef} id="palette-export-card">
+      {/* Export card (this gets captured) */}
+      <div className="palette-export-card" ref={exportRef}>
         <div className="export-header">
-          <div className="export-logo">🎨 EMCO SALES</div>
-          <div className="export-palette-name">{palette.emoji} {palette.name}</div>
-          <div className="export-tagline">Your Trusted Paint &amp; Color Expert</div>
+          <p className="export-logo">🎨 EMCO SALES</p>
+          <p className="export-palette-name">{palette.name}</p>
+          <p className="export-tagline">Your Trusted Paint &amp; Color Expert | Asian Paints · Birla Opus</p>
         </div>
-        <div className="export-swatches">
-          {Object.entries(palette.colors).map(([, c], i) => (
-            <div key={i} className="export-swatch">
-              <div className="export-swatch-color" style={{ background: c.hex }} />
-              <div className="export-swatch-label">{c.label}</div>
-              <div className="export-swatch-hex">{c.hex}</div>
+
+        {/* Roles */}
+        <div className="export-roles">
+          {colorList.map((c, i) => (
+            <div key={i} className="export-role-row">
+              <div className="export-role-dot" style={{ background: c.hex }} />
+              <div className="export-role-info">
+                <span className="export-role-name">{c.role}</span>
+                <span className="export-role-color">{c.name} · {c.hex}</span>
+              </div>
             </div>
           ))}
         </div>
-        {detectedColors && (
+
+        {/* Swatch circles */}
+        <div className="export-swatches">
+          {colorList.map((c, i) => (
+            <div key={i} className="export-swatch">
+              <div className="export-swatch-color" style={{ background: c.hex }} />
+              <p className="export-swatch-label">{c.name}</p>
+              <p className="export-swatch-hex">{c.hex}</p>
+            </div>
+          ))}
+        </div>
+
+        {detectedList.length > 0 && (
           <div className="export-detected">
-            <div className="export-section-title">Detected from your image:</div>
+            <p className="export-section-title">Detected Room Colors</p>
             <div className="export-detected-row">
-              {detectedColors.slice(0, 6).map((c, i) => (
+              {detectedList.slice(0, 8).map((c, i) => (
                 <div key={i} className="export-detected-dot" style={{ background: c.hex }} title={c.hex} />
               ))}
             </div>
           </div>
         )}
-        <div className="export-footer">
-          Visit: EMCO SALES | WhatsApp: +91 90351 51620
-        </div>
+
+        <p className="export-footer">
+          Generated by EMCO SALES Color Recommendation System · emco-sales.com · +91 90351 51620
+        </p>
       </div>
 
+      {/* Download buttons */}
       <div className="download-btns">
         <button
           className="download-btn png"
-          onClick={downloadPNG}
-          disabled={downloading}
+          onClick={handlePNG}
+          disabled={!!loading}
           id="download-png-btn"
         >
-          {downloading ? "⏳ Saving…" : "🖼️ Download PNG"}
+          {loading === "png" ? "⏳ Saving..." : "🖼️ Save as PNG"}
         </button>
         <button
           className="download-btn pdf"
-          onClick={downloadPDF}
-          disabled={pdfLoading}
+          onClick={handlePDF}
+          disabled={!!loading}
           id="download-pdf-btn"
         >
-          {pdfLoading ? "⏳ Generating…" : "📄 Download PDF"}
+          {loading === "pdf" ? "⏳ Saving..." : "📄 Save as PDF"}
         </button>
       </div>
-    </section>
+    </div>
   );
 }

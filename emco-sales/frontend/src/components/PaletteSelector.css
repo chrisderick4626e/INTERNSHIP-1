@@ -1,35 +1,39 @@
+.palette-section { }
+
 .palette-cards-list {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
 }
 
+/* ── Palette Card ─────────────────────────────────────────── */
 .palette-card {
   width: 100%;
   text-align: left;
   background: var(--card-inner);
   border: 2px solid var(--border);
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 1rem;
   cursor: pointer;
   transition: all 0.25s ease;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.8rem;
 }
 
 .palette-card:hover {
   border-color: var(--card-border, var(--accent));
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
 }
 
 .palette-card.selected {
   border-color: var(--card-border, var(--accent));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--card-border, var(--accent)) 25%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--card-border, var(--accent)) 20%, transparent);
   background: color-mix(in srgb, var(--card-border, var(--accent)) 5%, var(--card-inner));
 }
 
+/* ── Card Header ─────────────────────────────────────────── */
 .palette-card-header {
   display: flex;
   align-items: flex-start;
@@ -42,47 +46,51 @@
   font-size: 1rem;
   font-weight: 700;
   color: var(--text);
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.1rem;
+  letter-spacing: -0.01em;
 }
 
 .palette-desc {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
   line-height: 1.4;
 }
 
 .selected-badge {
   margin-left: auto;
-  background: var(--accent);
+  flex-shrink: 0;
+  background: var(--card-border, var(--accent));
   color: #fff;
   font-size: 0.6rem;
   font-weight: 700;
-  padding: 0.2rem 0.5rem;
+  padding: 0.2rem 0.55rem;
   border-radius: 20px;
   white-space: nowrap;
   align-self: flex-start;
 }
 
-.palette-color-row {
+/* ── Swatches ─────────────────────────────────────────────── */
+.palette-swatch-row {
   display: flex;
   gap: 0.5rem;
 }
 
-.palette-color-dot {
+.palette-swatch-dot {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 3px solid rgba(255,255,255,0.15);
+  border: 3px solid rgba(255,255,255,0.12);
   box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-  flex-shrink: 0;
   transition: transform 0.2s;
+  flex-shrink: 0;
 }
-.palette-color-dot:hover { transform: scale(1.15); }
+.palette-swatch-dot:hover { transform: scale(1.15); }
 
-.palette-labels {
+/* ── Role Labels ─────────────────────────────────────────── */
+.palette-role-labels {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
 .palette-label-item {
@@ -99,38 +107,44 @@
   flex-shrink: 0;
 }
 
-.palette-label-name {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text);
-  line-height: 1.2;
+.palette-label-role {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  line-height: 1;
+  margin-bottom: 0.05rem;
 }
 
 .palette-label-hex {
   font-size: 0.6rem;
   font-family: "Courier New", monospace;
-  color: var(--text-muted);
+  color: var(--accent);
 }
 
-/* ── Tablet Enhancements ──────────────────────────────────── */
+/* ── Price Badge ─────────────────────────────────────────── */
+.palette-price-badge {
+  align-self: flex-start;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ── Tablet / Desktop ─────────────────────────────────────── */
 @media (min-width: 768px) {
-  .palette-card { padding: 1.25rem; border-radius: 18px; }
-  .palette-name { font-size: 1.1rem; }
-  .palette-desc { font-size: 0.8rem; }
-  .palette-emoji { font-size: 1.7rem; }
-  .palette-color-dot { width: 48px; height: 48px; }
-  .palette-label-name { font-size: 0.78rem; }
-  .palette-label-hex  { font-size: 0.68rem; }
-  .palette-label-dot  { width: 16px; height: 16px; border-radius: 5px; }
+  .palette-card    { padding: 1.25rem; border-radius: 20px; gap: 1rem; }
+  .palette-name    { font-size: 1.1rem; }
+  .palette-desc    { font-size: 0.78rem; }
+  .palette-emoji   { font-size: 1.7rem; }
+  .palette-swatch-dot { width: 48px; height: 48px; }
+  .palette-label-role { font-size: 0.7rem; }
+  .palette-label-hex  { font-size: 0.65rem; }
+  .palette-role-labels { gap: 0.45rem; }
 }
 
-/* ── Desktop — 3 palette cards side by side ──────────────── */
 @media (min-width: 1024px) {
-  /* When palette-suggestions is in right column, stack vertically */
-  .palette-cards-list {
-    gap: 1rem;
-    height: 100%;
-  }
-  .palette-card { flex: 1; }
-  .palette-color-dot { width: 52px; height: 52px; }
+  .palette-swatch-dot { width: 52px; height: 52px; }
+  .palette-label-dot  { width: 16px; height: 16px; border-radius: 5px; }
 }

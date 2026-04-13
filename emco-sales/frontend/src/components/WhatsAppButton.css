@@ -5,29 +5,38 @@
 
 .wa-glow-bg {
   position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba(37, 211, 102, 0.15) 0%, transparent 70%);
+  top: -60px;
+  right: -60px;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(37,211,102,0.12) 0%, transparent 70%);
   pointer-events: none;
 }
 
+/* ── Features row ────────────────────────────────────────── */
 .wa-features {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
   margin-bottom: 1rem;
-  padding: 0.75rem;
+  padding: 0.8rem;
   background: var(--card-inner);
   border-radius: 12px;
   border: 1px solid var(--border);
 }
 
 .wa-feature {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
   font-weight: 500;
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.wa-btns-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
 }
 
 .wa-btn {
@@ -46,14 +55,13 @@
   text-decoration: none;
   cursor: pointer;
   transition: all 0.25s ease;
-  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.35);
+  box-shadow: 0 4px 20px rgba(37,211,102,0.3);
   letter-spacing: 0.02em;
-  margin-bottom: 0.6rem;
 }
 
 .wa-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(37, 211, 102, 0.5);
+  box-shadow: 0 8px 28px rgba(37,211,102,0.5);
   background: linear-gradient(135deg, #2be572, #15a086);
 }
 
@@ -71,40 +79,69 @@
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.8rem;
   background: var(--card-inner);
   color: var(--text);
-  border: 2px solid var(--border);
+  border: 1.5px solid var(--border);
   border-radius: 14px;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  text-decoration: none;
   cursor: pointer;
   transition: all 0.2s ease;
 }
+
 .wa-btn-secondary:hover {
   border-color: #25D366;
   color: #25D366;
   transform: translateY(-1px);
 }
 
-/* ── Desktop Enhancements ─────────────────────────────────── */
+/* ── Palette Summary ─────────────────────────────────────── */
+.wa-palette-summary {
+  padding: 0.75rem;
+  background: var(--card-inner);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.wa-summary-title {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.wa-summary-dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.wa-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.12);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  cursor: default;
+  transition: transform 0.2s;
+}
+.wa-dot:hover { transform: scale(1.2); }
+
+/* ── Desktop ─────────────────────────────────────────────── */
 @media (min-width: 768px) {
-  .wa-features { flex-direction: row; justify-content: space-around; padding: 1rem; }
-  .wa-feature  { font-size: 0.88rem; }
-  .wa-btn      { font-size: 1.1rem; padding: 1.15rem; border-radius: 16px; }
-  .wa-icon     { width: 26px; height: 26px; }
-  .wa-btn-secondary { font-size: 0.96rem; padding: 0.9rem; }
+  .wa-features    { flex-direction: row; justify-content: space-around; }
+  .wa-feature     { font-size: 0.88rem; }
+  .wa-btn         { font-size: 1.1rem; padding: 1.1rem; }
+  .wa-icon        { width: 26px; height: 26px; }
+  .wa-btn-secondary { font-size: 0.96rem; }
+  .wa-dot         { width: 32px; height: 32px; }
+  .wa-glow-bg     { width: 350px; height: 350px; }
 }
 
 @media (min-width: 1024px) {
-  .wa-glow-bg { width: 350px; height: 350px; }
-  /* Side-by-side buttons on desktop */
   .wa-btns-row {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    gap: 0.75rem;
-    align-items: center;
+    gap: 0.8rem;
   }
-  .wa-btn { margin-bottom: 0; }
 }

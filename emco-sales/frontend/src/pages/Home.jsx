@@ -1,233 +1,304 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
-import ImageUploader from "../components/ImageUploader";
-import ColorPalette from "../components/ColorPalette";
-import PaletteSelector from "../components/PaletteSelector";
-import BrandRecommendations from "../components/BrandRecommendations";
-import BeforeAfter from "../components/BeforeAfter";
-import WhatsAppButton from "../components/WhatsAppButton";
-import SaveDownload from "../components/SaveDownload";
-import LoadingSpinner from "../components/LoadingSpinner";
-import { generateAllPalettes } from "../utils/colorEngine";
-import { mapAllPalettesToBrands } from "../utils/colorMatcher";
+import React, { useState, useCallback, useRef } from "react";
+import ImageUploader    from "../components/ImageUploader.jsx";
+import ColorPalette     from "../components/ColorPalette.jsx";
+import PaletteSelector  from "../components/PaletteSelector.jsx";
+import BrandRecommendations from "../components/BrandRecommendations.jsx";
+import BeforeAfter      from "../components/BeforeAfter.jsx";
+import WhatsAppButton   from "../components/WhatsAppButton.jsx";
+import SaveDownload     from "../components/SaveDownload.jsx";
+import LoadingSpinner   from "../components/LoadingSpinner.jsx";
+import FilterBar        from "../components/FilterBar.jsx";
+
+import { classifyColor, generateAllPalettes } from "../utils/colorEngine.js";
+import { matchPaletteToBrands }               from "../utils/colorMatcher.js";
+import { BRANDS, PRICE_CAT }                  from "../data/paintDatabase.js";
 import "./Home.css";
 
-const BACKEND_URL = "http://localhost:5000";
-
-/**
- * Fallback: extract dominant colors client-side using canvas sampling.
- * Used when the backend is not running.
- */
-async function extractColorsClientSide(dataUrl) {
+// ─── Client-side canvas color extractor (offline fallback) ──
+async function extractColorsFromImage(imageUrl) {
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => {
       const canvas = document.createElement("canvas");
-      const size = 80;
-      canvas.width = size;
-      canvas.height = size;
+      const SIZE   = 100;
+      canvas.width = SIZE;
+      canvas.height= SIZE;
       const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, size, size);
-      const data = ctx.getImageData(0, 0, size, size).data;
+      ctx.drawImage(img, 0, 0, SIZE, SIZE);
+      const data = ctx.getImageData(0, 0, SIZE, SIZE).data;
 
-      // Sample pixels at intervals and bucket by rough hue
+      // Sample every 4th pixel, bucket into grid
       const buckets = {};
-      const step = 4 * 8; // every 8th pixel
-      for (let i = 0; i < data.length; i += step) {
-        const r = data[i], g = data[i + 1], b = data[i + 2];
-        // Bucket key — rounded to nearest 32
-        const key = `${Math.round(r / 32) * 32},${Math.round(g / 32) * 32},${Math.round(b / 32) * 32}`;
+      const step    = 32; // color quantization
+      for (let i = 0; i < data.length; i += 16) {
+        const r = Math.round(data[i]     / step) * step;
+        const g = Math.round(data[i + 1] / step) * step;
+        const b = Math.round(data[i + 2] / step) * step;
+        const a = data[i + 3];
+        if (a < 128) continue;
+        const key = `${r},${g},${b}`;
         buckets[key] = (buckets[key] || 0) + 1;
       }
 
-      const top = Object.entries(buckets)
+      const sorted = Object.entries(buckets)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 7)
+        .slice(0, 8)
         .map(([key]) => {
           const [r, g, b] = key.split(",").map(Number);
-          const hex = "#" + [r, g, b].map((v) => Math.min(255, v).toString(16).padStart(2, "0")).join("").toUpperCase();
-          // Simple HSL for classification
-          const rn = r / 255, gn = g / 255, bn = b / 255;
-          const max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn);
-          let h = 0, s = 0;
-          const l = (max + min) / 2;
-          if (max !== min) {
-            const d = max - min;
-            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-            switch (max) {
-              case rn: h = ((gn - bn) / d + (gn < bn ? 6 : 0)) / 6; break;
-              case gn: h = ((bn - rn) / d + 2) / 6; break;
-              default: h = ((rn - gn) / d + 4) / 6;
-            }
-          }
-          const hDeg = h * 360, sPct = s * 100, lPct = l * 100;
-          const isWarm = (hDeg < 60 || hDeg > 300) && sPct > 12;
-          const isCool = hDeg >= 180 && hDeg <= 270 && sPct > 12;
-          const isNeutral = sPct < 12 || lPct > 82;
-          let label = "Detected Tone";
-          if (isNeutral) label = lPct > 85 ? "Light Neutral" : "Neutral Grey";
-          else if (isWarm) label = lPct > 70 ? "Warm Light" : "Warm Deep";
-          else if (isCool) label = "Cool Accent";
-          return { hex, r, g, b, h: hDeg, s: sPct, l: lPct, label, isWarm, isCool, isNeutral };
+          const hex = `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+          return { hex, r, g, b };
         });
 
-      resolve(top);
+      resolve(sorted);
     };
     img.onerror = () => resolve([]);
-    img.src = dataUrl;
+    img.src = imageUrl;
   });
 }
 
+// ─── Map PRICE_CAT to palette style ID ──────────────────────
+function budgetToPaletteStyle(budget) {
+  if (budget === PRICE_CAT.PREMIUM) return "luxury";
+  if (budget === PRICE_CAT.BUDGET)  return "budget";
+  return "minimal";
+}
+
+// ─── Main Page ───────────────────────────────────────────────
 export default function Home() {
-  const [imageData, setImageData] = useState(null);
-  const [detectedColors, setDetectedColors] = useState(null);
-  const [palettes, setPalettes] = useState(null);
+  const BACKEND = "http://localhost:5000";
+
+  // Image state
+  const [imageUrl,    setImageUrl]    = useState(null);
+  const [loading,     setLoading]     = useState(false);
+  const [error,       setError]       = useState(null);
+  const [backendMode, setBackendMode] = useState(null); // null | "online" | "offline"
+
+  // Color analysis state
+  const [detectedColors, setDetectedColors] = useState(null); // raw extracted colors
+  const [allPalettes,    setAllPalettes]    = useState(null); // { luxury, minimal, budget }
   const [selectedPalette, setSelectedPalette] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [backendAvail, setBackendAvail] = useState(null);
-  const [error, setError] = useState(null);
+  const [matchedPalette,  setMatchedPalette]  = useState(null);
 
-  const resultRef = useRef(null);
+  // Filter state
+  const [budget, setBudget] = useState(PRICE_CAT.MIDRANGE);
+  const [brand,  setBrand]  = useState("all");
+  const [usage,  setUsage]  = useState("interior");
 
-  // Check if backend is available on mount
-  useEffect(() => {
-    fetch(`${BACKEND_URL}/api/health`, { signal: AbortSignal.timeout(3000) })
-      .then(() => setBackendAvail(true))
-      .catch(() => setBackendAvail(false));
-  }, []);
+  const paletteRef = useRef(null);
 
-  const analyzeImage = useCallback(
-    async (imgData) => {
-      if (!imgData) {
-        setDetectedColors(null);
-        setPalettes(null);
-        setSelectedPalette(null);
+  // ── Run full analysis pipeline ─────────────────────────────
+  const analyzeImage = useCallback(async (url) => {
+    setLoading(true);
+    setError(null);
+    setDetectedColors(null);
+    setAllPalettes(null);
+    setSelectedPalette(null);
+    setMatchedPalette(null);
+
+    try {
+      let colors = [];
+
+      // Try backend first
+      try {
+        const res = await fetch(`${BACKEND}/api/analyze`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageData: url }),
+          signal: AbortSignal.timeout(8000),
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.colors?.length) {
+            colors = json.colors;
+            setBackendMode("online");
+          }
+        }
+      } catch {
+        // Backend unavailable — fall through
+      }
+
+      // Client-side fallback
+      if (colors.length === 0) {
+        colors = await extractColorsFromImage(url);
+        setBackendMode("offline");
+      }
+
+      if (colors.length === 0) {
+        setError("Could not extract colors from this image. Please try another photo.");
         return;
       }
 
-      setImageData(imgData);
-      setLoading(true);
-      setError(null);
+      // Classify colors
+      const classified = colors.map(c => ({ ...c, ...classifyColor(c.hex) }));
+      setDetectedColors(classified);
 
-      try {
-        let colors;
+      // Generate all 3 palette styles
+      const palettes = generateAllPalettes(classified);
+      setAllPalettes(palettes);
 
-        if (backendAvail) {
-          // Call Python backend
-          const resp = await fetch(`${BACKEND_URL}/api/analyze`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ imageData: imgData.dataUrl }),
-          });
-          const json = await resp.json();
-          if (!json.success) throw new Error(json.error || "Analysis failed");
-          colors = json.colors;
-        } else {
-          // Fallback: client-side canvas sampling
-          colors = await extractColorsClientSide(imgData.dataUrl);
-        }
+      // Auto-select based on current budget filter
+      const autoStyle = budgetToPaletteStyle(budget);
+      const autoPalette = palettes[autoStyle] || palettes.minimal;
+      setSelectedPalette(autoPalette);
 
-        setDetectedColors(colors);
+      // Match to brand paints
+      const matched = matchPaletteToBrands(autoPalette.colors, budget, usage);
+      setMatchedPalette(matched);
 
-        // Generate palettes
-        const rawPalettes = generateAllPalettes(colors);
-        // Map to brand paints
-        const mappedPalettes = mapAllPalettesToBrands(rawPalettes);
+      // Scroll to results
+      setTimeout(() => paletteRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 200);
 
-        setPalettes(mappedPalettes);
-        setSelectedPalette(mappedPalettes[0]);
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [budget, usage]);
 
-        // Scroll to results
-        setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 200);
-      } catch (err) {
-        console.error(err);
-        setError("Could not analyze image. Trying client-side fallback…");
-        // Always try fallback
-        try {
-          const colors = await extractColorsClientSide(imgData.dataUrl);
-          setDetectedColors(colors);
-          const rawPalettes = generateAllPalettes(colors);
-          const mappedPalettes = mapAllPalettesToBrands(rawPalettes);
-          setPalettes(mappedPalettes);
-          setSelectedPalette(mappedPalettes[0]);
-          setError(null);
-        } catch {
-          setError("Image analysis failed. Please try a different image.");
-        }
-      } finally {
-        setLoading(false);
-      }
-    },
-    [backendAvail]
-  );
+  // ── Handle image selection ─────────────────────────────────
+  const handleImage = useCallback((url) => {
+    setImageUrl(url);
+    analyzeImage(url);
+  }, [analyzeImage]);
+
+  // ── Handle palette selection ───────────────────────────────
+  const handlePaletteSelect = useCallback((palette) => {
+    setSelectedPalette(palette);
+    const matched = matchPaletteToBrands(palette.colors, budget, usage);
+    setMatchedPalette(matched);
+  }, [budget, usage]);
+
+  // ── Re-run on filter changes (if image already loaded) ────
+  const handleBudgetChange = useCallback((newBudget) => {
+    setBudget(newBudget);
+    if (!allPalettes) return;
+    const style   = budgetToPaletteStyle(newBudget);
+    const palette = allPalettes[style] || allPalettes.minimal;
+    setSelectedPalette(palette);
+    setMatchedPalette(matchPaletteToBrands(palette.colors, newBudget, usage));
+  }, [allPalettes, usage]);
+
+  const handleUsageChange = useCallback((newUsage) => {
+    setUsage(newUsage);
+    if (!selectedPalette) return;
+    setMatchedPalette(matchPaletteToBrands(selectedPalette.colors, budget, newUsage));
+  }, [selectedPalette, budget]);
+
+  const handleBrandChange = useCallback((newBrand) => {
+    setBrand(newBrand);
+    // Brand filter is passed down and handled in BrandRecommendations display
+  }, []);
+
+  // ── WhatsApp message builder ────────────────────────────────
+  const buildWaMessage = () => {
+    if (!selectedPalette) return "Hello! I need help choosing paint colors for my home.";
+    const colors  = selectedPalette.colors || {};
+    const lines   = Object.values(colors)
+      .map(c => `• ${c.role}: ${c.name} (${c.hex})`)
+      .join("\n");
+    return `Hello EMCO SALES! 👋\n\nI used your Color Recommendation System and selected the *${selectedPalette.name}* palette:\n\n${lines}\n\nBudget: ${budget} | Usage: ${usage}\n\nCould you suggest the best Asian Paints / Birla Opus products for these shades? Thank you!`;
+  };
 
   return (
     <main className="home-main">
-      {loading && <LoadingSpinner message="Extracting colors from your image…" />}
-
-      {/* Hero / intro strip */}
+      {/* Hero strip */}
       <div className="hero-strip">
         <div className="hero-badges">
           <span className="hero-badge">🏆 Asian Paints</span>
           <span className="hero-badge">💎 Birla Opus</span>
-          <span className="hero-badge">🌿 Nippon Paint</span>
         </div>
         <p className="hero-subtext">
-          Upload a photo of your room → get AI-powered color recommendations → consult our expert on WhatsApp
+          Upload a room photo → AI detects colors → get smart paint recommendations → consult on WhatsApp
         </p>
       </div>
 
-      {/* Backend status */}
-      {backendAvail === false && (
+      {/* Backend notice */}
+      {backendMode === "offline" && (
         <div className="backend-notice">
           ⚡ Running in offline mode — using smart client-side color analysis
         </div>
       )}
-
       {error && <div className="error-banner">⚠️ {error}</div>}
 
+      {loading && <LoadingSpinner />}
+
       <div className="sections-wrapper">
-        {/* 1. Image Upload */}
-        <ImageUploader onImageReady={analyzeImage} />
 
-        {/* 2. Detected Colors */}
-        {detectedColors && <ColorPalette colors={detectedColors} />}
+        {/* ── Section 1: Upload ──────────────────────────── */}
+        <div id="upload-section">
+          <ImageUploader onImage={handleImage} currentImage={imageUrl} />
+        </div>
 
-        {/* 3. Palette Suggestions */}
-        {palettes && (
-          <>
-            <div ref={resultRef} />
+        {/* ── Section 2: Smart Filters (always visible) ─── */}
+        <div id="filter-section">
+          <FilterBar
+            budget={budget}
+            brand={brand}
+            usage={usage}
+            onBudget={handleBudgetChange}
+            onBrand={handleBrandChange}
+            onUsage={handleUsageChange}
+          />
+        </div>
+
+        {/* ── Section 3: Detected Colors ───────────────── */}
+        {detectedColors && (
+          <div id="detected-colors" ref={paletteRef}>
+            <ColorPalette colors={detectedColors} />
+          </div>
+        )}
+
+        {/* ── Section 4: Palette Suggestions ───────────── */}
+        {allPalettes && (
+          <div id="palette-suggestions">
             <PaletteSelector
-              palettes={palettes}
-              selectedPalette={selectedPalette}
-              onSelect={setSelectedPalette}
+              palettes={allPalettes}
+              selected={selectedPalette}
+              onSelect={handlePaletteSelect}
             />
-          </>
+          </div>
         )}
 
-        {/* 4. Brand Recommendations */}
-        {selectedPalette && (
-          <BrandRecommendations palette={selectedPalette} />
+        {/* ── Section 5: Brand Recommendations ─────────── */}
+        {matchedPalette && (
+          <div id="brand-recommendations">
+            <BrandRecommendations
+              matchedPalette={matchedPalette}
+              activeBrand={brand}
+            />
+          </div>
         )}
 
-        {/* 5. Before / After Preview */}
-        {selectedPalette && imageData && (
-          <BeforeAfter
-            imageDataUrl={imageData.dataUrl}
+        {/* ── Section 6: Before / After Preview ─────────── */}
+        {imageUrl && selectedPalette?.colors && (
+          <div id="color-preview">
+            <BeforeAfter
+              imageUrl={imageUrl}
+              palette={Object.values(selectedPalette.colors).map(c => c.hex)}
+            />
+          </div>
+        )}
+
+        {/* ── Section 7: Save / Download ────────────────── */}
+        {selectedPalette?.colors && (
+          <div id="save-download">
+            <SaveDownload
+              palette={selectedPalette}
+              detectedColors={detectedColors}
+            />
+          </div>
+        )}
+
+        {/* ── Section 8: WhatsApp ────────────────────────── */}
+        <div id="whatsapp-contact">
+          <WhatsAppButton
+            waMessage={buildWaMessage()}
             palette={selectedPalette}
           />
-        )}
+        </div>
 
-        {/* 6. Save & Download */}
-        {selectedPalette && (
-          <SaveDownload
-            palette={selectedPalette}
-            detectedColors={detectedColors}
-          />
-        )}
-
-        {/* 7. WhatsApp CTA */}
-        <WhatsAppButton palette={selectedPalette} />
       </div>
     </main>
   );
