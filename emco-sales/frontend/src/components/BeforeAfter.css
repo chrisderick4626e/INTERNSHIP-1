@@ -1,4 +1,4 @@
-.before-after { }
+.before-after {}
 
 .canvas-wrapper {
   border-radius: 14px;
@@ -41,8 +41,8 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.15);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   flex-shrink: 0;
 }
 
@@ -54,13 +54,32 @@
 
 /* ── Desktop Enhancements ──────────────────────────────── */
 @media (min-width: 768px) {
-  .canvas-wrapper { border-radius: 18px; }
-  .strip-dot    { width: 26px; height: 26px; }
-  .strip-label  { font-size: 0.75rem; }
-  .palette-strip { gap: 0.75rem; margin-top: 1rem; }
+  .canvas-wrapper {
+    border-radius: 18px;
+  }
+
+  .strip-dot {
+    width: 26px;
+    height: 26px;
+  }
+
+  .strip-label {
+    font-size: 0.75rem;
+  }
+
+  .palette-strip {
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
 }
 
 @media (min-width: 1024px) {
-  .strip-dot  { width: 30px; height: 30px; }
-  .strip-label { font-size: 0.82rem; }
+  .strip-dot {
+    width: 30px;
+    height: 30px;
+  }
+
+  .strip-label {
+    font-size: 0.82rem;
+  }
 }

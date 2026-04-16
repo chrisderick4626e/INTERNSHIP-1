@@ -1,0 +1,365 @@
+/* ============================================================
+   RoomPreview — Visual Room Preview Component
+   Before/After comparison with brand-specific tabs & slider
+   ============================================================ */
+
+/* ── Container ──────────────────────────────────────────────── */
+.room-preview {
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── View mode toggle row ───────────────────────────────────── */
+.rp-mode-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.rp-mode-btn {
+  flex: 1;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card-inner);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: center;
+}
+
+.rp-mode-btn:hover {
+  border-color: var(--border-hover);
+  color: var(--text);
+}
+
+.rp-mode-btn.active {
+  background: linear-gradient(135deg, rgba(249,115,22,0.12), rgba(139,92,246,0.12));
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+/* ── Tab buttons ────────────────────────────────────────────── */
+.rp-tab-btns {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.85rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.rp-tab-btns::-webkit-scrollbar { display: none; }
+
+.rp-tab-btn {
+  flex: 1;
+  min-width: 90px;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card-inner);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.rp-tab-btn:hover {
+  border-color: var(--border-hover);
+  color: var(--text);
+}
+
+.rp-tab-btn.active {
+  background: linear-gradient(135deg, rgba(249,115,22,0.15), rgba(139,92,246,0.10));
+  border-color: var(--accent);
+  color: var(--text);
+  box-shadow: 0 2px 10px var(--accent-glow);
+}
+
+/* ── Preview Pane ───────────────────────────────────────────── */
+.rp-pane {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--card-inner);
+  border: 1px solid var(--border);
+  transition: opacity 0.3s ease;
+}
+
+.rp-pane.loading {
+  opacity: 0.7;
+}
+
+.rp-pane-badge {
+  padding: 0.4rem 0.7rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: rgba(0,0,0,0.2);
+  letter-spacing: 0.04em;
+}
+
+.rp-pane-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: cover;
+}
+
+.rp-pane-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.rp-pane-empty {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 0.78rem;
+}
+
+/* Spinner */
+.rp-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: rpSpin 0.7s linear infinite;
+}
+
+@keyframes rpSpin { to { transform: rotate(360deg); } }
+
+/* ── Palette Strip ──────────────────────────────────────────── */
+.rp-strip {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.6rem 0.7rem;
+  background: rgba(0,0,0,0.15);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.rp-strip::-webkit-scrollbar { display: none; }
+
+.rp-strip-item {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.rp-strip-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 2px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.rp-strip-info {
+  min-width: 0;
+}
+
+.rp-strip-role {
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.rp-strip-name {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.rp-strip-hex {
+  font-size: 0.58rem;
+  color: var(--text-muted);
+  font-family: monospace;
+  line-height: 1;
+}
+
+.rp-strip-series {
+  font-size: 0.55rem;
+  color: var(--accent);
+  line-height: 1;
+  margin-top: 1px;
+}
+
+/* ── Comparison Slider ──────────────────────────────────────── */
+.rp-slider-mode {
+  margin-top: 0.5rem;
+}
+
+.rp-slider-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.rp-slider-mode-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.rp-slider-wrap {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: col-resize;
+  user-select: none;
+  -webkit-user-select: none;
+  border: 1px solid var(--border);
+}
+
+.rp-slider-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 450px;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.rp-slider-before {
+  position: relative;
+  z-index: 1;
+}
+
+.rp-slider-after-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.rp-slider-after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  min-width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rp-slider-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  z-index: 3;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: col-resize;
+}
+
+.rp-handle-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.rp-handle-knob {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--accent);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  z-index: 4;
+}
+
+.rp-slider-label {
+  position: absolute;
+  bottom: 8px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: white;
+  background: rgba(0,0,0,0.6);
+  border-radius: 4px;
+  z-index: 5;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  backdrop-filter: blur(4px);
+}
+
+.rp-slider-label.left  { left: 8px; }
+.rp-slider-label.right { right: 8px; }
+
+/* ── Desktop Side-by-Side ───────────────────────────────────── */
+.rp-desktop-split {
+  display: none;
+}
+
+/* ── Tablet + ───────────────────────────────────────────────── */
+@media (min-width: 768px) {
+  .rp-pane-img { max-height: 500px; }
+  .rp-slider-img { max-height: 520px; }
+  .rp-strip-dot { width: 32px; height: 32px; }
+  .rp-strip-name { font-size: 0.72rem; }
+  .rp-strip-role { font-size: 0.6rem; }
+  .rp-tab-btn { font-size: 0.78rem; padding: 0.55rem 0.8rem; }
+  .rp-mode-btn { font-size: 0.78rem; }
+}
+
+/* ── Desktop (1024px+) — show side-by-side, hide tabs ─────── */
+@media (min-width: 1024px) {
+  .rp-tabs-view   { display: none; }
+  .rp-slider-mode { display: none; }
+
+  .rp-desktop-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .rp-split-pane .rp-pane {
+    height: 100%;
+  }
+
+  .rp-split-pane .rp-pane-img {
+    max-height: 480px;
+  }
+
+  .rp-mode-row { display: none; }
+}

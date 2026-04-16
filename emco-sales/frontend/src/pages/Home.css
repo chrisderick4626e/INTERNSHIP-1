@@ -101,14 +101,16 @@
   #detected-colors     { grid-column: 1; }
 
   /* Right column */
-  #palette-suggestions { grid-column: 2; grid-row: 1 / span 2; }
+  #filter-section      { grid-column: 2; grid-row: 1 / span 2; }
+  #palette-suggestions { grid-column: 2; }
 
   /* Full-width rows */
-  #brand-recommendations,
-  #color-preview,
+  #brand-comparison,
+  #room-preview-section,
   #save-download,
   #whatsapp-contact { grid-column: 1 / -1; }
 }
+
 
 /* ── Wide Desktop (1400px+) ──────────────────────────────── */
 @media (min-width: 1400px) {

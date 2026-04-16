@@ -1,16 +1,17 @@
 import React, { useState, useCallback, useRef } from "react";
-import ImageUploader    from "../components/ImageUploader.jsx";
-import ColorPalette     from "../components/ColorPalette.jsx";
-import PaletteSelector  from "../components/PaletteSelector.jsx";
-import BrandRecommendations from "../components/BrandRecommendations.jsx";
-import BeforeAfter      from "../components/BeforeAfter.jsx";
-import WhatsAppButton   from "../components/WhatsAppButton.jsx";
-import SaveDownload     from "../components/SaveDownload.jsx";
-import LoadingSpinner   from "../components/LoadingSpinner.jsx";
-import FilterBar        from "../components/FilterBar.jsx";
+import ImageUploader     from "../components/ImageUploader.jsx";
+import ColorPalette      from "../components/ColorPalette.jsx";
+import PaletteSelector   from "../components/PaletteSelector.jsx";
+import DualBrandOutput   from "../components/DualBrandOutput.jsx";
+import RoomPreview       from "../components/RoomPreview.jsx";
+import WhatsAppButton    from "../components/WhatsAppButton.jsx";
+import SaveDownload      from "../components/SaveDownload.jsx";
+import LoadingSpinner    from "../components/LoadingSpinner.jsx";
+import FilterBar         from "../components/FilterBar.jsx";
 
 import { classifyColor, generateAllPalettes } from "../utils/colorEngine.js";
 import { matchPaletteToBrands }               from "../utils/colorMatcher.js";
+import { extractBrandPalette }                from "../utils/roomPainter.js";
 import { BRANDS, PRICE_CAT }                  from "../data/paintDatabase.js";
 import "./Home.css";
 
@@ -85,7 +86,12 @@ export default function Home() {
   const [brand,  setBrand]  = useState("all");
   const [usage,  setUsage]  = useState("interior");
 
-  const paletteRef = useRef(null);
+  const paletteRef   = useRef(null);
+  const roomPreviewRef = useRef(null);
+
+  // ── Derive per-brand palettes for RoomPreview ──────────────
+  const apPalette = matchedPalette ? extractBrandPalette(matchedPalette, BRANDS.ASIAN_PAINTS) : null;
+  const boPalette = matchedPalette ? extractBrandPalette(matchedPalette, BRANDS.BIRLA_OPUS) : null;
 
   // ── Run full analysis pipeline ─────────────────────────────
   const analyzeImage = useCallback(async (url) => {
@@ -188,7 +194,12 @@ export default function Home() {
 
   const handleBrandChange = useCallback((newBrand) => {
     setBrand(newBrand);
-    // Brand filter is passed down and handled in BrandRecommendations display
+    // Brand filter is passed down to DualBrandOutput
+  }, []);
+
+  // ── Scroll to room preview ──────────────────────────────────
+  const scrollToRoomPreview = useCallback(() => {
+    roomPreviewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
   // ── WhatsApp message builder ────────────────────────────────
@@ -198,7 +209,17 @@ export default function Home() {
     const lines   = Object.values(colors)
       .map(c => `• ${c.role}: ${c.name} (${c.hex})`)
       .join("\n");
-    return `Hello EMCO SALES! 👋\n\nI used your Color Recommendation System and selected the *${selectedPalette.name}* palette:\n\n${lines}\n\nBudget: ${budget} | Usage: ${usage}\n\nCould you suggest the best Asian Paints / Birla Opus products for these shades? Thank you!`;
+
+    // Include both brands' series info if available
+    let brandLines = "";
+    if (matchedPalette) {
+      const apInfo = matchedPalette.primaryWall?.brands?.[BRANDS.ASIAN_PAINTS]?.primary;
+      const boInfo = matchedPalette.primaryWall?.brands?.[BRANDS.BIRLA_OPUS]?.primary;
+      if (apInfo) brandLines += `\n🏆 Asian Paints: ${apInfo.series} · ${apInfo.shadeName}`;
+      if (boInfo) brandLines += `\n💎 Birla Opus: ${boInfo.series} · ${boInfo.shadeName}`;
+    }
+
+    return `Hello EMCO SALES! 👋\n\nI used your Color Recommendation System and selected the *${selectedPalette.name}* palette:\n\n${lines}${brandLines}\n\nBudget: ${budget} | Usage: ${usage}\n\nCould you suggest the best products for these shades? Thank you!`;
   };
 
   return (
@@ -261,22 +282,24 @@ export default function Home() {
           </div>
         )}
 
-        {/* ── Section 5: Brand Recommendations ─────────── */}
+        {/* ── Section 5: Brand Comparison (Dual) ─────────── */}
         {matchedPalette && (
-          <div id="brand-recommendations">
-            <BrandRecommendations
+          <div id="brand-comparison">
+            <DualBrandOutput
               matchedPalette={matchedPalette}
               activeBrand={brand}
+              onViewInRoom={imageUrl ? scrollToRoomPreview : null}
             />
           </div>
         )}
 
-        {/* ── Section 6: Before / After Preview ─────────── */}
-        {imageUrl && selectedPalette?.colors && (
-          <div id="color-preview">
-            <BeforeAfter
+        {/* ── Section 6: Room Preview ────────────────────── */}
+        {imageUrl && matchedPalette && (
+          <div id="room-preview-section" ref={roomPreviewRef}>
+            <RoomPreview
               imageUrl={imageUrl}
-              palette={Object.values(selectedPalette.colors).map(c => c.hex)}
+              apPalette={apPalette}
+              boPalette={boPalette}
             />
           </div>
         )}
