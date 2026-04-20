@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useMemo } from "react";
 import ImageUploader     from "../components/ImageUploader.jsx";
 import ColorPalette      from "../components/ColorPalette.jsx";
 import PaletteSelector   from "../components/PaletteSelector.jsx";
@@ -8,10 +8,13 @@ import WhatsAppButton    from "../components/WhatsAppButton.jsx";
 import SaveDownload      from "../components/SaveDownload.jsx";
 import LoadingSpinner    from "../components/LoadingSpinner.jsx";
 import FilterBar         from "../components/FilterBar.jsx";
+import CustomColorPanel  from "../components/CustomColorPanel.jsx";
+import BrandMatchCard    from "../components/BrandMatchCard.jsx";
 
 import { classifyColor, generateAllPalettes } from "../utils/colorEngine.js";
 import { matchPaletteToBrands }               from "../utils/colorMatcher.js";
 import { extractBrandPalette }                from "../utils/roomPainter.js";
+import { buildCustomPalette, matchAllFourColors } from "../utils/colorHarmony.js";
 import { BRANDS, PRICE_CAT }                  from "../data/paintDatabase.js";
 import "./Home.css";
 
@@ -73,11 +76,11 @@ export default function Home() {
   const [imageUrl,    setImageUrl]    = useState(null);
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState(null);
-  const [backendMode, setBackendMode] = useState(null); // null | "online" | "offline"
+  const [backendMode, setBackendMode] = useState(null);
 
   // Color analysis state
-  const [detectedColors, setDetectedColors] = useState(null); // raw extracted colors
-  const [allPalettes,    setAllPalettes]    = useState(null); // { luxury, minimal, budget }
+  const [detectedColors, setDetectedColors] = useState(null);
+  const [allPalettes,    setAllPalettes]    = useState(null);
   const [selectedPalette, setSelectedPalette] = useState(null);
   const [matchedPalette,  setMatchedPalette]  = useState(null);
 
@@ -86,12 +89,28 @@ export default function Home() {
   const [brand,  setBrand]  = useState("all");
   const [usage,  setUsage]  = useState("interior");
 
-  const paletteRef   = useRef(null);
+  // ── Custom Color Panel state ───────────────────────────────
+  const [colorMode, setColorMode] = useState("ai");
+  const [customColors, setCustomColors] = useState({
+    primaryWall: "#F5F0E8",
+    accentWall:  "#FFFFFF",
+    ceiling:     "#D6D6D6",
+    trim:        "#FAF7F2",
+  });
+  const [brandMatches, setBrandMatches] = useState(null);
+
+  const paletteRef     = useRef(null);
   const roomPreviewRef = useRef(null);
 
   // ── Derive per-brand palettes for RoomPreview ──────────────
   const apPalette = matchedPalette ? extractBrandPalette(matchedPalette, BRANDS.ASIAN_PAINTS) : null;
   const boPalette = matchedPalette ? extractBrandPalette(matchedPalette, BRANDS.BIRLA_OPUS) : null;
+
+  // Build custom palette object for RoomPreview (memoized to avoid needless repaints)
+  const customPalette = useMemo(() => {
+    if (colorMode === "ai") return null;
+    return buildCustomPalette(customColors);
+  }, [colorMode, customColors]);
 
   // ── Run full analysis pipeline ─────────────────────────────
   const analyzeImage = useCallback(async (url) => {
@@ -194,8 +213,23 @@ export default function Home() {
 
   const handleBrandChange = useCallback((newBrand) => {
     setBrand(newBrand);
-    // Brand filter is passed down to DualBrandOutput
   }, []);
+
+  // ── Custom color handlers ──────────────────────────────────
+  const handleModeChange = useCallback((newMode) => {
+    setColorMode(newMode);
+    setBrandMatches(null);
+  }, []);
+
+  const handleCustomColorsChange = useCallback((newColors) => {
+    setCustomColors(newColors);
+    setBrandMatches(null); // clear stale matches
+  }, []);
+
+  const handleMatchBrand = useCallback(() => {
+    const matches = matchAllFourColors(customColors, budget, usage);
+    setBrandMatches(matches);
+  }, [customColors, budget, usage]);
 
   // ── Scroll to room preview ──────────────────────────────────
   const scrollToRoomPreview = useCallback(() => {
@@ -210,7 +244,6 @@ export default function Home() {
       .map(c => `• ${c.role}: ${c.name} (${c.hex})`)
       .join("\n");
 
-    // Include both brands' series info if available
     let brandLines = "";
     if (matchedPalette) {
       const apInfo = matchedPalette.primaryWall?.brands?.[BRANDS.ASIAN_PAINTS]?.primary;
@@ -282,8 +315,29 @@ export default function Home() {
           </div>
         )}
 
-        {/* ── Section 5: Brand Comparison (Dual) ─────────── */}
-        {matchedPalette && (
+        {/* ── Section 5: Custom Color Panel ────────────── */}
+        <div id="custom-color-section">
+          <CustomColorPanel
+            mode={colorMode}
+            onModeChange={handleModeChange}
+            colors={customColors}
+            onColorsChange={handleCustomColorsChange}
+            onMatchBrand={handleMatchBrand}
+          />
+        </div>
+
+        {/* ── Section 5b: Brand Match Results ──────────── */}
+        {brandMatches && (
+          <div id="brand-match-section">
+            <BrandMatchCard
+              matches={brandMatches}
+              onClose={() => setBrandMatches(null)}
+            />
+          </div>
+        )}
+
+        {/* ── Section 6: Brand Comparison (Dual) ─────────── */}
+        {matchedPalette && colorMode === "ai" && (
           <div id="brand-comparison">
             <DualBrandOutput
               matchedPalette={matchedPalette}
@@ -293,18 +347,20 @@ export default function Home() {
           </div>
         )}
 
-        {/* ── Section 6: Room Preview ────────────────────── */}
-        {imageUrl && matchedPalette && (
+        {/* ── Section 7: Room Preview ────────────────────── */}
+        {imageUrl && (matchedPalette || customPalette) && (
           <div id="room-preview-section" ref={roomPreviewRef}>
             <RoomPreview
               imageUrl={imageUrl}
-              apPalette={apPalette}
-              boPalette={boPalette}
+              apPalette={colorMode === "ai" ? apPalette : null}
+              boPalette={colorMode === "ai" ? boPalette : null}
+              customPalette={customPalette}
+              colorMode={colorMode}
             />
           </div>
         )}
 
-        {/* ── Section 7: Save / Download ────────────────── */}
+        {/* ── Section 8: Save / Download ────────────────── */}
         {selectedPalette?.colors && (
           <div id="save-download">
             <SaveDownload
@@ -314,7 +370,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* ── Section 8: WhatsApp ────────────────────────── */}
+        {/* ── Section 9: WhatsApp ────────────────────────── */}
         <div id="whatsapp-contact">
           <WhatsAppButton
             waMessage={buildWaMessage()}

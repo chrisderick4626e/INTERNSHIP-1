@@ -1,7 +1,7 @@
 // ============================================================
-// EMCO SALES — Room Painter Engine v1
-// Canvas-based pixel-level wall color simulation
-// No ML required — pure HSL-based wall detection
+// EMCO SALES — Room Painter Engine v3
+// HSL-space color transfer for accurate, realistic wall painting
+// Preserves texture/shadows while clearly changing wall color
 // ============================================================
 
 // ─── Color utilities ─────────────────────────────────────────
@@ -32,49 +32,108 @@ function rgbToHsl(r, g, b) {
   return { h: h * 360, s: s * 100, l: l * 100 };
 }
 
-function lerp(a, b, t) {
-  return Math.round(a + (b - a) * t);
+function hslToRgb(h, s, l) {
+  h /= 360; s /= 100; l /= 100;
+  if (s === 0) {
+    const v = Math.round(l * 255);
+    return { r: v, g: v, b: v };
+  }
+  const hue2rgb = (p, q, t) => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1/6) return p + (q - p) * 6 * t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+  };
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  return {
+    r: Math.round(hue2rgb(p, q, h + 1/3) * 255),
+    g: Math.round(hue2rgb(p, q, h) * 255),
+    b: Math.round(hue2rgb(p, q, h - 1/3) * 255),
+  };
 }
 
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function lerpVal(a, b, t) { return a + (b - a) * t; }
+
 // ─── Region classifier ────────────────────────────────────────
-// Returns which color to blend this pixel with, or null to skip
+// Smart hue-based filtering: skips sky, vegetation, and saturated objects
 function classifyPixel(x, y, W, H, r, g, b) {
-  const { l, s } = rgbToHsl(r, g, b);
-  const fy = y / H; // 0 = top, 1 = bottom
-  const fx = x / W; // 0 = left, 1 = right
+  const { h, s, l } = rgbToHsl(r, g, b);
+  const fy = y / H;
+  const fx = x / W;
 
-  // Skip very dark pixels — furniture, shadows, objects
-  if (l < 28) return null;
+  // ── SKIP: definite non-wall pixels ──
 
-  // Ceiling zone — top 20%, light pixels
-  if (fy < 0.20 && l > 40) return "ceiling";
+  // Very dark → furniture, deep shadows
+  if (l < 15) return null;
 
-  // Wall-like pixels: reasonably light & not too saturated
-  // This catches most painted wall surfaces
-  if (s < 55 && l > 35) {
-    // Narrow side trim (very edges)
-    if (fx < 0.045 || fx > 0.955) return "trim";
+  // Pure white glare / light sources
+  if (l > 97) return null;
 
-    // Right accent wall (rightmost 28%, but not edge trim)
-    if (fx > 0.72 && fy > 0.18 && fy < 0.90) return "accent";
+  // Sky: blue-cyan hue with noticeable saturation
+  if (h >= 170 && h <= 270 && s > 12) return null;
 
-    // Everything else — primary wall
-    return "primary";
-  }
+  // Vegetation: green hue with noticeable saturation
+  if (h >= 65 && h <= 165 && s > 15) return null;
+
+  // Very saturated objects — flowers, bright decor, colored furniture
+  if (s > 55) return null;
+
+  // ── CLASSIFY remaining neutral/low-sat pixels as wall regions ──
+
+  // Floor region (bottom 10%) — typically floor, skip
+  if (fy > 0.90) return null;
+
+  // Ceiling: top 10%, light neutral pixels
+  if (fy < 0.10 && l > 40) return "ceiling";
+
+  // Edge trim: narrow side borders
+  if (fx < 0.03 || fx > 0.97) return "trim";
+
+  // Accent wall: right 28% of image
+  if (fx > 0.72 && fy > 0.10 && fy < 0.90) return "accent";
+
+  // Primary wall: all remaining neutral-ish pixels
+  if (l > 18) return "primary";
 
   return null;
 }
 
+// ─── HSL Color Transfer ───────────────────────────────────────
+// Instead of crude RGB lerp, this:
+// 1. Adopts the TARGET hue fully → wall clearly shows new color
+// 2. Blends saturation toward target → new color's richness applies
+// 3. Mostly preserves original luminance → texture/shadows stay intact
+function transferColor(origR, origG, origB, targetR, targetG, targetB, strength) {
+  const orig   = rgbToHsl(origR, origG, origB);
+  const target = rgbToHsl(targetR, targetG, targetB);
+
+  // Fully adopt target hue (this is what makes the wall look "painted")
+  const newH = target.h;
+
+  // Blend saturation: mostly target, but keep some original for texture
+  const newS = clamp(lerpVal(orig.s, target.s, strength * 0.85), 0, 100);
+
+  // Luminance: mostly keep original (preserves shadows, highlights, texture)
+  // Only shift 30-40% toward target luminance
+  const newL = clamp(lerpVal(orig.l, target.l, strength * 0.35), 0, 100);
+
+  return hslToRgb(newH, newS, newL);
+}
+
 // ─── Core painter function ────────────────────────────────────
 // palette: { primaryWall: {hex}, accentWall: {hex}, ceiling: {hex}, trim: {hex} }
-// options.blendBase: 0.0–1.0 (default 0.50) — how strongly to blend
-// Returns: Promise<string>  (data URL)  or  null on error
+// options.strength: 0.0–1.0 (default 0.80) — color transfer strength
 export async function paintRoom(imageUrl, palette, options = {}) {
-  const { blendBase = 0.50 } = options;
+  const { strength = 0.80 } = options;
 
   // Guard: need all 4 palette roles
   if (!palette?.primaryWall?.hex || !palette?.accentWall?.hex ||
       !palette?.ceiling?.hex     || !palette?.trim?.hex) {
+    console.warn("[RoomPainter] Missing palette roles:", palette);
     return null;
   }
 
@@ -83,7 +142,6 @@ export async function paintRoom(imageUrl, palette, options = {}) {
     img.crossOrigin = "anonymous";
 
     img.onload = () => {
-      // Downscale for performance (max 800px wide)
       const MAX_W = 800;
       const scale = img.width > MAX_W ? MAX_W / img.width : 1;
       const W = Math.round(img.width  * scale);
@@ -105,33 +163,58 @@ export async function paintRoom(imageUrl, palette, options = {}) {
         trim:    hexToRgb(palette.trim.hex),
       };
 
+      // Debug: track region counts
+      const regionCounts = { primary: 0, accent: 0, ceiling: 0, trim: 0, skipped: 0 };
+
       for (let y = 0; y < H; y++) {
         for (let x = 0; x < W; x++) {
-          const i   = (y * W + x) * 4;
-          const r   = px[i], g = px[i + 1], b = px[i + 2];
-          const { l } = rgbToHsl(r, g, b);
+          const i = (y * W + x) * 4;
+          const r = px[i], g = px[i + 1], b = px[i + 2];
 
           const region = classifyPixel(x, y, W, H, r, g, b);
-          if (!region) continue;
+          if (!region) {
+            regionCounts.skipped++;
+            continue;
+          }
 
+          regionCounts[region]++;
           const target = colors[region];
-          // Blend more strongly on brighter pixels (wall highlights blend well)
-          // Blend less on mid-tones to preserve texture
-          const blend = blendBase * Math.pow(l / 100, 0.4);
 
-          px[i]     = lerp(r, target.r, blend);
-          px[i + 1] = lerp(g, target.g, blend);
-          px[i + 2] = lerp(b, target.b, blend);
-          // alpha unchanged
+          // HSL color transfer — accurate color, preserved texture
+          const result = transferColor(r, g, b, target.r, target.g, target.b, strength);
+
+          px[i]     = result.r;
+          px[i + 1] = result.g;
+          px[i + 2] = result.b;
         }
       }
 
       ctx.putImageData(imgData, 0, 0);
-      resolve(canvas.toDataURL("image/jpeg", 0.88));
+
+      // Debug logging
+      const totalPixels = W * H;
+      const painted = regionCounts.primary + regionCounts.accent + regionCounts.ceiling + regionCounts.trim;
+      console.log("[RoomPainter v3] ─── Debug ───");
+      console.log("[RoomPainter v3] Canvas:", W, "×", H, "=", totalPixels, "px");
+      console.log("[RoomPainter v3] Strength:", strength);
+      console.log("[RoomPainter v3] Colors:", {
+        primary: palette.primaryWall.hex,
+        accent:  palette.accentWall.hex,
+        ceiling: palette.ceiling.hex,
+        trim:    palette.trim.hex,
+      });
+      console.log("[RoomPainter v3] Regions:", regionCounts);
+      console.log("[RoomPainter v3] Painted:", painted, "/", totalPixels,
+                  `(${Math.round(painted / totalPixels * 100)}%)`);
+
+      resolve(canvas.toDataURL("image/jpeg", 0.92));
     };
 
-    img.onerror = () => resolve(null);
-    img.src    = imageUrl;
+    img.onerror = () => {
+      console.error("[RoomPainter] Failed to load image:", imageUrl?.slice(0, 80));
+      resolve(null);
+    };
+    img.src = imageUrl;
   });
 }
 
@@ -151,7 +234,7 @@ export function extractBrandPalette(matchedPalette, brand) {
     const paint     = brandData?.primary;
 
     result[role] = {
-      hex:  paint?.hex  || roleData.hex,  // fallback to palette color
+      hex:  paint?.hex  || roleData.hex,
       name: paint?.shadeName || roleData.name,
       series: paint?.series || "—",
       finish: paint?.finish || "—",

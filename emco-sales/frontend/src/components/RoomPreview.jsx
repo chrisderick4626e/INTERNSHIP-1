@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { paintRoom } from "../utils/roomPainter.js";
-import { BRANDS } from "../data/paintDatabase.js";
 import "./RoomPreview.css";
 
 const TABS = [
   { key: "original", label: "Original",      emoji: "📷" },
   { key: "ap",       label: "Asian Paints",  emoji: "🏆" },
   { key: "bo",       label: "Birla Opus",    emoji: "💎" },
+];
+
+const CUSTOM_TABS = [
+  { key: "original", label: "Original",  emoji: "📷" },
+  { key: "custom",   label: "Custom",    emoji: "🎨" },
 ];
 
 // Palette strip at the bottom of each preview pane
@@ -25,7 +29,7 @@ function PaletteStrip({ palette, brand }) {
               <p className="rp-strip-role">{item.role || role}</p>
               <p className="rp-strip-name">{item.name}</p>
               <p className="rp-strip-hex">{item.hex}</p>
-              {item.series && item.series !== "—" && (
+              {brand && item.series && item.series !== "—" && (
                 <p className="rp-strip-series">{brand} · {item.series}</p>
               )}
             </div>
@@ -61,7 +65,7 @@ function PreviewPane({ imageUrl, label, badge, isLoading, palette, brand }) {
 // Before/After comparison slider
 function ComparisonSlider({ before, after, label }) {
   const sliderRef = useRef(null);
-  const [pos, setPos] = useState(50); // percentage
+  const [pos, setPos] = useState(50);
   const dragging = useRef(false);
 
   const handleMove = useCallback((clientX) => {
@@ -96,15 +100,10 @@ function ComparisonSlider({ before, after, label }) {
 
   return (
     <div className="rp-slider-wrap" ref={sliderRef}>
-      {/* Before image (full width) */}
       <img src={before} alt="Before" className="rp-slider-img rp-slider-before" />
-
-      {/* After image clipped */}
       <div className="rp-slider-after-wrap" style={{ width: `${pos}%` }}>
         <img src={after} alt={label} className="rp-slider-img rp-slider-after" />
       </div>
-
-      {/* Divider handle */}
       <div
         className="rp-slider-handle"
         style={{ left: `${pos}%` }}
@@ -114,8 +113,6 @@ function ComparisonSlider({ before, after, label }) {
         <div className="rp-handle-line" />
         <div className="rp-handle-knob">⟺</div>
       </div>
-
-      {/* Labels */}
       <span className="rp-slider-label left">BEFORE</span>
       <span className="rp-slider-label right">{label}</span>
     </div>
@@ -123,38 +120,76 @@ function ComparisonSlider({ before, after, label }) {
 }
 
 // ── Main Component ───────────────────────────────────────────
-export default function RoomPreview({ imageUrl, apPalette, boPalette }) {
+export default function RoomPreview({
+  imageUrl,
+  apPalette,
+  boPalette,
+  customPalette = null,
+  colorMode = "ai",
+}) {
   const [activeTab, setActiveTab] = useState("original");
-  const [viewMode, setViewMode] = useState("tabs"); // "tabs" | "slider"
+  const [viewMode, setViewMode] = useState("tabs");
   const [apImage,  setApImage]  = useState(null);
   const [boImage,  setBoImage]  = useState(null);
+  const [customImage, setCustomImage] = useState(null);
   const [apLoading, setApLoading] = useState(false);
   const [boLoading, setBoLoading] = useState(false);
+  const [customLoading, setCustomLoading] = useState(false);
   const [sliderBrand, setSliderBrand] = useState("ap");
 
-  // Paint when palette or image changes
+  // Debounce ref for custom color live updates
+  const customDebounce = useRef(null);
+
+  const isCustomMode = colorMode === "custom" || colorMode === "hybrid";
+  const tabs = isCustomMode ? CUSTOM_TABS : TABS;
+
+  // Reset tab when mode changes
   useEffect(() => {
-    if (!imageUrl || !apPalette) return;
+    setActiveTab("original");
+  }, [colorMode]);
+
+  // Paint AP when palette or image changes
+  useEffect(() => {
+    if (!imageUrl || !apPalette || isCustomMode) return;
     setApLoading(true);
     setApImage(null);
     paintRoom(imageUrl, apPalette)
       .then(url => { setApImage(url);  setApLoading(false); })
       .catch(() => setApLoading(false));
-  }, [imageUrl, apPalette]);
+  }, [imageUrl, apPalette, isCustomMode]);
 
+  // Paint BO
   useEffect(() => {
-    if (!imageUrl || !boPalette) return;
+    if (!imageUrl || !boPalette || isCustomMode) return;
     setBoLoading(true);
     setBoImage(null);
     paintRoom(imageUrl, boPalette)
       .then(url => { setBoImage(url); setBoLoading(false); })
       .catch(() => setBoLoading(false));
-  }, [imageUrl, boPalette]);
+  }, [imageUrl, boPalette, isCustomMode]);
+
+  // Paint custom colors (debounced for live updates during picker drag)
+  useEffect(() => {
+    if (!imageUrl || !customPalette || !isCustomMode) return;
+
+    if (customDebounce.current) clearTimeout(customDebounce.current);
+
+    setCustomLoading(true);
+    customDebounce.current = setTimeout(() => {
+      paintRoom(imageUrl, customPalette)
+        .then(url => { setCustomImage(url); setCustomLoading(false); })
+        .catch(() => setCustomLoading(false));
+    }, 100); // 100ms debounce for smooth live updates
+
+    return () => {
+      if (customDebounce.current) clearTimeout(customDebounce.current);
+    };
+  }, [imageUrl, customPalette, isCustomMode]);
 
   if (!imageUrl) return null;
 
-  const sliderAfter = sliderBrand === "ap" ? apImage : boImage;
-  const sliderLabel = sliderBrand === "ap" ? "Asian Paints" : "Birla Opus";
+  const sliderAfter = sliderBrand === "ap" ? apImage : sliderBrand === "bo" ? boImage : customImage;
+  const sliderLabel = sliderBrand === "ap" ? "Asian Paints" : sliderBrand === "bo" ? "Birla Opus" : "Custom";
 
   return (
     <div className="room-preview card" id="room-preview">
@@ -162,7 +197,11 @@ export default function RoomPreview({ imageUrl, apPalette, boPalette }) {
         <span className="section-icon">🖼️</span>
         <div>
           <p className="section-title">Visual Room Preview</p>
-          <p className="section-desc">See your room painted with each brand's recommended colors</p>
+          <p className="section-desc">
+            {isCustomMode
+              ? "See your room painted with your custom colors"
+              : "See your room painted with each brand's recommended colors"}
+          </p>
         </div>
       </div>
 
@@ -181,9 +220,8 @@ export default function RoomPreview({ imageUrl, apPalette, boPalette }) {
       {/* ── Tab Mode ─────────── */}
       {viewMode === "tabs" && (
         <div className="rp-tabs-view">
-          {/* Tab buttons */}
           <div className="rp-tab-btns">
-            {TABS.map(t => (
+            {tabs.map(t => (
               <button
                 key={t.key}
                 className={`rp-tab-btn ${activeTab === t.key ? "active" : ""}`}
@@ -194,32 +232,25 @@ export default function RoomPreview({ imageUrl, apPalette, boPalette }) {
             ))}
           </div>
 
-          {/* Tab content */}
           {activeTab === "original" && (
+            <PreviewPane imageUrl={imageUrl} label="Original Room" badge="📷" />
+          )}
+          {activeTab === "ap" && !isCustomMode && (
             <PreviewPane
-              imageUrl={imageUrl}
-              label="Original Room"
-              badge="📷"
+              imageUrl={apImage} label="Asian Paints" badge="🏆"
+              isLoading={apLoading} palette={apPalette} brand="Asian Paints"
             />
           )}
-          {activeTab === "ap" && (
+          {activeTab === "bo" && !isCustomMode && (
             <PreviewPane
-              imageUrl={apImage}
-              label="Asian Paints"
-              badge="🏆"
-              isLoading={apLoading}
-              palette={apPalette}
-              brand="Asian Paints"
+              imageUrl={boImage} label="Birla Opus" badge="💎"
+              isLoading={boLoading} palette={boPalette} brand="Birla Opus"
             />
           )}
-          {activeTab === "bo" && (
+          {activeTab === "custom" && isCustomMode && (
             <PreviewPane
-              imageUrl={boImage}
-              label="Birla Opus"
-              badge="💎"
-              isLoading={boLoading}
-              palette={boPalette}
-              brand="Birla Opus"
+              imageUrl={customImage} label="Custom Colors" badge="🎨"
+              isLoading={customLoading} palette={customPalette}
             />
           )}
         </div>
@@ -230,20 +261,26 @@ export default function RoomPreview({ imageUrl, apPalette, boPalette }) {
         <div className="rp-slider-mode">
           <div className="rp-slider-brand-row">
             <span className="rp-slider-mode-label">Compare with:</span>
-            <button
-              className={`rp-mode-btn ${sliderBrand === "ap" ? "active" : ""}`}
-              onClick={() => setSliderBrand("ap")}
-            >🏆 Asian Paints</button>
-            <button
-              className={`rp-mode-btn ${sliderBrand === "bo" ? "active" : ""}`}
-              onClick={() => setSliderBrand("bo")}
-            >💎 Birla Opus</button>
+            {isCustomMode ? (
+              <button className="rp-mode-btn active">🎨 Custom</button>
+            ) : (
+              <>
+                <button
+                  className={`rp-mode-btn ${sliderBrand === "ap" ? "active" : ""}`}
+                  onClick={() => setSliderBrand("ap")}
+                >🏆 Asian Paints</button>
+                <button
+                  className={`rp-mode-btn ${sliderBrand === "bo" ? "active" : ""}`}
+                  onClick={() => setSliderBrand("bo")}
+                >💎 Birla Opus</button>
+              </>
+            )}
           </div>
-          {sliderAfter ? (
+          {(isCustomMode ? customImage : sliderAfter) ? (
             <ComparisonSlider
               before={imageUrl}
-              after={sliderAfter}
-              label={sliderLabel}
+              after={isCustomMode ? customImage : sliderAfter}
+              label={isCustomMode ? "Custom" : sliderLabel}
             />
           ) : (
             <div className="rp-pane-loading">
@@ -254,29 +291,33 @@ export default function RoomPreview({ imageUrl, apPalette, boPalette }) {
         </div>
       )}
 
-      {/* Desktop side-by-side (both brands at once) */}
-      <div className="rp-desktop-split">
-        <div className="rp-split-pane">
+      {/* Desktop side-by-side (AI mode only — show both brands) */}
+      {!isCustomMode && (
+        <div className="rp-desktop-split">
+          <div className="rp-split-pane">
+            <PreviewPane
+              imageUrl={apImage} label="Asian Paints" badge="🏆"
+              isLoading={apLoading} palette={apPalette} brand="Asian Paints"
+            />
+          </div>
+          <div className="rp-split-pane">
+            <PreviewPane
+              imageUrl={boImage} label="Birla Opus" badge="💎"
+              isLoading={boLoading} palette={boPalette} brand="Birla Opus"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Desktop full-width (Custom/Hybrid mode — single preview) */}
+      {isCustomMode && (
+        <div className="rp-desktop-custom">
           <PreviewPane
-            imageUrl={apImage}
-            label="Asian Paints"
-            badge="🏆"
-            isLoading={apLoading}
-            palette={apPalette}
-            brand="Asian Paints"
+            imageUrl={customImage} label="Custom Colors" badge="🎨"
+            isLoading={customLoading} palette={customPalette}
           />
         </div>
-        <div className="rp-split-pane">
-          <PreviewPane
-            imageUrl={boImage}
-            label="Birla Opus"
-            badge="💎"
-            isLoading={boLoading}
-            palette={boPalette}
-            brand="Birla Opus"
-          />
-        </div>
-      </div>
+      )}
     </div>
   );
 }

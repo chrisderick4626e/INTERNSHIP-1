@@ -1,6 +1,6 @@
 /* ============================================================
    RoomPreview — Visual Room Preview Component
-   Before/After comparison with brand-specific tabs & slider
+   Side-by-side brand comparison with tight spacing
    ============================================================ */
 
 /* ── Container ──────────────────────────────────────────────── */
@@ -12,14 +12,14 @@
 /* ── View mode toggle row ───────────────────────────────────── */
 .rp-mode-row {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 6px;
+  margin-bottom: 10px;
 }
 
 .rp-mode-btn {
   flex: 1;
-  padding: 0.45rem 0.75rem;
-  font-size: 0.72rem;
+  padding: 6px 10px;
+  font-size: 0.7rem;
   font-weight: 700;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -45,8 +45,8 @@
 /* ── Tab buttons ────────────────────────────────────────────── */
 .rp-tab-btns {
   display: flex;
-  gap: 0.4rem;
-  margin-bottom: 0.85rem;
+  gap: 4px;
+  margin-bottom: 8px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -55,9 +55,9 @@
 
 .rp-tab-btn {
   flex: 1;
-  min-width: 90px;
-  padding: 0.5rem 0.6rem;
-  font-size: 0.7rem;
+  min-width: 80px;
+  padding: 6px 8px;
+  font-size: 0.68rem;
   font-weight: 700;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -83,7 +83,7 @@
 
 /* ── Preview Pane ───────────────────────────────────────────── */
 .rp-pane {
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--card-inner);
   border: 1px solid var(--border);
@@ -95,8 +95,8 @@
 }
 
 .rp-pane-badge {
-  padding: 0.4rem 0.7rem;
-  font-size: 0.68rem;
+  padding: 4px 10px;
+  font-size: 0.65rem;
   font-weight: 700;
   color: var(--text-muted);
   background: rgba(0,0,0,0.2);
@@ -107,7 +107,7 @@
   display: block;
   width: 100%;
   height: auto;
-  max-height: 400px;
+  max-height: 360px;
   object-fit: cover;
 }
 
@@ -116,23 +116,23 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  padding: 3rem 1rem;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
   color: var(--text-muted);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
 }
 
 .rp-pane-empty {
-  padding: 3rem 1rem;
+  padding: 2rem 1rem;
   text-align: center;
   color: var(--text-faint);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
 }
 
 /* Spinner */
 .rp-spinner {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border: 3px solid var(--border);
   border-top-color: var(--accent);
   border-radius: 50%;
@@ -144,8 +144,8 @@
 /* ── Palette Strip ──────────────────────────────────────────── */
 .rp-strip {
   display: flex;
-  gap: 0.5rem;
-  padding: 0.6rem 0.7rem;
+  gap: 6px;
+  padding: 6px 8px;
   background: rgba(0,0,0,0.15);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -155,19 +155,19 @@
 
 .rp-strip-item {
   display: flex;
-  gap: 0.4rem;
+  gap: 4px;
   align-items: center;
-  min-width: 120px;
+  min-width: 100px;
   flex-shrink: 0;
 }
 
 .rp-strip-dot {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
   border: 2px solid rgba(255,255,255,0.1);
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .rp-strip-info {
@@ -175,17 +175,17 @@
 }
 
 .rp-strip-role {
-  font-size: 0.55rem;
+  font-size: 0.5rem;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   line-height: 1;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .rp-strip-name {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 600;
   color: var(--text);
   white-space: nowrap;
@@ -195,14 +195,14 @@
 }
 
 .rp-strip-hex {
-  font-size: 0.58rem;
+  font-size: 0.52rem;
   color: var(--text-muted);
   font-family: monospace;
   line-height: 1;
 }
 
 .rp-strip-series {
-  font-size: 0.55rem;
+  font-size: 0.5rem;
   color: var(--accent);
   line-height: 1;
   margin-top: 1px;
@@ -210,19 +210,19 @@
 
 /* ── Comparison Slider ──────────────────────────────────────── */
 .rp-slider-mode {
-  margin-top: 0.5rem;
+  margin-top: 6px;
 }
 
 .rp-slider-brand-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  gap: 6px;
+  margin-bottom: 8px;
   flex-wrap: wrap;
 }
 
 .rp-slider-mode-label {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--text-muted);
   font-weight: 600;
 }
@@ -230,7 +230,7 @@
 .rp-slider-wrap {
   position: relative;
   width: 100%;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   cursor: col-resize;
   user-select: none;
@@ -242,7 +242,7 @@
   display: block;
   width: 100%;
   height: auto;
-  max-height: 450px;
+  max-height: 380px;
   object-fit: cover;
   pointer-events: none;
 }
@@ -294,25 +294,25 @@
 
 .rp-handle-knob {
   position: relative;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: var(--card);
   border: 2px solid var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--accent);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
   z-index: 4;
 }
 
 .rp-slider-label {
   position: absolute;
-  bottom: 8px;
-  padding: 0.2rem 0.5rem;
-  font-size: 0.6rem;
+  bottom: 6px;
+  padding: 2px 8px;
+  font-size: 0.55rem;
   font-weight: 800;
   color: white;
   background: rgba(0,0,0,0.6);
@@ -323,34 +323,26 @@
   backdrop-filter: blur(4px);
 }
 
-.rp-slider-label.left  { left: 8px; }
-.rp-slider-label.right { right: 8px; }
+.rp-slider-label.left  { left: 6px; }
+.rp-slider-label.right { right: 6px; }
 
-/* ── Desktop Side-by-Side ───────────────────────────────────── */
+/* ── Desktop Side-by-Side — always visible at 768px+ ────────── */
 .rp-desktop-split {
   display: none;
 }
 
-/* ── Tablet + ───────────────────────────────────────────────── */
+/* ── Tablet (768px+) — switch to side-by-side ───────────────── */
 @media (min-width: 768px) {
-  .rp-pane-img { max-height: 500px; }
-  .rp-slider-img { max-height: 520px; }
-  .rp-strip-dot { width: 32px; height: 32px; }
-  .rp-strip-name { font-size: 0.72rem; }
-  .rp-strip-role { font-size: 0.6rem; }
-  .rp-tab-btn { font-size: 0.78rem; padding: 0.55rem 0.8rem; }
-  .rp-mode-btn { font-size: 0.78rem; }
-}
-
-/* ── Desktop (1024px+) — show side-by-side, hide tabs ─────── */
-@media (min-width: 1024px) {
+  /* Hide mobile-only views */
   .rp-tabs-view   { display: none; }
   .rp-slider-mode { display: none; }
+  .rp-mode-row    { display: none; }
 
+  /* Show side-by-side split */
   .rp-desktop-split {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    gap: 12px;
   }
 
   .rp-split-pane .rp-pane {
@@ -358,8 +350,39 @@
   }
 
   .rp-split-pane .rp-pane-img {
-    max-height: 480px;
+    max-height: 420px;
   }
 
-  .rp-mode-row { display: none; }
+  .rp-strip-dot { width: 26px; height: 26px; }
+  .rp-strip-name { font-size: 0.65rem; }
+  .rp-strip-role { font-size: 0.55rem; }
+}
+
+/* ── Desktop (1024px+) ──────────────────────────────────────── */
+@media (min-width: 1024px) {
+  .rp-desktop-split {
+    gap: 16px;
+  }
+
+  .rp-split-pane .rp-pane-img {
+    max-height: 480px;
+  }
+}
+
+/* ── Custom Mode Desktop Preview ──────────────────────────── */
+.rp-desktop-custom {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .rp-desktop-custom {
+    display: block;
+    margin-top: 10px;
+  }
+
+  .rp-desktop-custom .rp-pane-img {
+    max-height: 500px;
+    width: 100%;
+    object-fit: contain;
+  }
 }

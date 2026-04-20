@@ -6,8 +6,8 @@
 /* ── Mobile tabs ────────────────────────────────────────────── */
 .dbo-mobile-tabs {
   display: flex;
-  gap: 0.4rem;
-  margin-bottom: 0.85rem;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .dbo-mobile-tab {
@@ -291,8 +291,8 @@
 /* ── View in Room CTA ───────────────────────────────────────── */
 .dbo-room-cta {
   width: 100%;
-  padding: 0.65rem 1rem;
-  margin-top: 0.85rem;
+  padding: 8px 12px;
+  margin-top: 10px;
   font-size: 0.78rem;
   font-weight: 800;
   color: var(--text);
@@ -312,8 +312,8 @@
 
 /* ── Legend ──────────────────────────────────────────────────── */
 .dbo-legend {
-  margin-top: 1rem;
-  padding-top: 0.75rem;
+  margin-top: 10px;
+  padding-top: 8px;
   border-top: 1px solid var(--border);
 }
 
@@ -352,27 +352,28 @@
   font-weight: 600;
 }
 
-/* ── Tablet (768px+) ────────────────────────────────────────── */
+/* ── Tablet (768px+) — switch to side-by-side ──────────────── */
 @media (min-width: 768px) {
-  .dbo-swatch { width: 64px; height: 64px; }
-  .dbo-shade-name { font-size: 0.8rem; }
-  .dbo-role-label { font-size: 0.75rem; }
-  .dbo-brand-name { font-size: 0.92rem; }
-  .dbo-legend-grid { grid-template-columns: repeat(3, 1fr); }
-}
-
-/* ── Desktop (1024px+) — side-by-side ───────────────────────── */
-@media (min-width: 1024px) {
   .dbo-mobile-tabs { display: none; }
   .dbo-mobile-view { display: none; }
 
   .dbo-desktop-view {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    gap: 12px;
   }
 
-  .dbo-swatch { width: 72px; height: 72px; }
+  .dbo-swatch { width: 60px; height: 60px; }
+  .dbo-shade-name { font-size: 0.78rem; }
+  .dbo-role-label { font-size: 0.72rem; }
+  .dbo-brand-name { font-size: 0.88rem; }
+  .dbo-legend-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ── Desktop (1024px+) ──────────────────────────────────────── */
+@media (min-width: 1024px) {
+  .dbo-desktop-view { gap: 16px; }
+  .dbo-swatch { width: 68px; height: 68px; }
   .dbo-shade-name { font-size: 0.85rem; }
   .dbo-brand-name { font-size: 1rem; }
 }

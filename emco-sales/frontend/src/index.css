@@ -71,8 +71,8 @@ body {
 .card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1.2rem;
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
   box-shadow: var(--shadow-sm);
   transition: box-shadow 0.3s ease;
 }
@@ -82,12 +82,12 @@ body {
 .section-header {
   display: flex;
   align-items: flex-start;
-  gap: 0.65rem;
-  margin-bottom: 1rem;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .section-icon {
-  font-size: 1.4rem;
+  font-size: 1.15rem;
   flex-shrink: 0;
   filter: drop-shadow(0 0 4px rgba(249,115,22,0.4));
 }
@@ -109,19 +109,19 @@ body {
 
 /* ─── Desktop Enhancements ───────────────────────────────────── */
 @media (min-width: 768px) {
-  .card { padding: 1.5rem; border-radius: 22px; }
-  .section-title { font-size: 1.2rem; }
-  .section-desc  { font-size: 0.8rem; }
-  .section-icon  { font-size: 1.6rem; }
+  .card { padding: 1rem; border-radius: 16px; }
+  .section-title { font-size: 1.1rem; }
+  .section-desc  { font-size: 0.78rem; }
+  .section-icon  { font-size: 1.3rem; }
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); }
 }
 
 @media (min-width: 1024px) {
-  .card { padding: 1.75rem; }
-  .section-title { font-size: 1.35rem; }
-  .section-desc  { font-size: 0.85rem; }
-  .section-icon  { font-size: 1.8rem; }
+  .card { padding: 1.1rem; }
+  .section-title { font-size: 1.2rem; }
+  .section-desc  { font-size: 0.82rem; }
+  .section-icon  { font-size: 1.4rem; }
 }
 
 /* ─── App Root ───────────────────────────────────────────────── */

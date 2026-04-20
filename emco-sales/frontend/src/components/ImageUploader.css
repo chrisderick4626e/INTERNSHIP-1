@@ -12,8 +12,8 @@
 .sample-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 @media (max-width: 400px) {
@@ -57,10 +57,10 @@
 .or-divider {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin: 0.75rem 0;
+  gap: 8px;
+  margin: 6px 0;
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.1em;
 }
@@ -74,8 +74,8 @@
 
 .drop-zone {
   border: 2px dashed var(--border);
-  border-radius: 16px;
-  padding: 2rem 1rem;
+  border-radius: 12px;
+  padding: 1.2rem 1rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.25s ease;
@@ -87,7 +87,7 @@
   background: rgba(249, 115, 22, 0.04);
 }
 
-.drop-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.drop-icon { font-size: 2rem; margin-bottom: 4px; }
 .drop-text { font-size: 0.9rem; font-weight: 600; color: var(--text); margin: 0 0 0.25rem; }
 .drop-sub  { font-size: 0.72rem; color: var(--text-muted); margin: 0; }
 
@@ -149,8 +149,8 @@
   .sample-btn { border-radius: 16px; }
   .sample-btn-label { font-size: 0.68rem; }
   .sample-btn-emoji { font-size: 1.1rem; }
-  .drop-zone { padding: 3rem 2rem; }
-  .drop-icon { font-size: 3.5rem; }
+  .drop-zone { padding: 1.5rem 1.5rem; }
+  .drop-icon { font-size: 2.5rem; }
   .drop-text { font-size: 1.05rem; }
   .drop-sub  { font-size: 0.82rem; }
   .preview-img { max-height: 340px; }
@@ -159,6 +159,6 @@
 
 @media (min-width: 1024px) {
   .sample-grid { gap: 0.75rem; }
-  .drop-zone { padding: 3.5rem 2rem; }
+  .drop-zone { padding: 2rem 1.5rem; }
   .preview-img { max-height: 400px; }
 }
